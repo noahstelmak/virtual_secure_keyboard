@@ -33,10 +33,6 @@ class VirtualKeyboard<T extends VirtualKey<R>, R> extends StatelessWidget {
             child: Text(virtualKey.label),
           );
         }),
-        ...List.generate(
-          (virtualKeys.length + 1) % columns,
-          (index) => const SizedBox.shrink(),
-        ),
         TextButton(
           onPressed: onBackspacePressed,
           child: const Icon(Icons.backspace_sharp),
