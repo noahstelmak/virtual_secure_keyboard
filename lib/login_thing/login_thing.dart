@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:virtual_secure_keyboard/virtual_keyboard/virtual_keyboard.dart';
@@ -62,13 +64,7 @@ class _LoginThingState extends State<LoginThing> {
                 },
                 child: VirtualKeyboard(
                   enabled: passwordField.hasFocus,
-                  virtualKeys: IndexedVirtualKey.indexedKeys([
-                    "0 ou 1",
-                    "2 ou 3",
-                    "4 ou 5",
-                    "6 ou 7",
-                    "8 ou 9",
-                  ]),
+                  virtualKeys: IndexedVirtualKey.indexedKeys(_generateKeys()),
                   onKeyPressed: (value) {
                     String text = controller.text;
                     TextSelection textSelection = controller.selection;
@@ -113,4 +109,12 @@ class _LoginThingState extends State<LoginThing> {
       ),
     );
   }
+}
+
+List<String> _generateKeys() {
+  final numbers = List.generate(10, (index) => index)..shuffle(Random.secure());
+  return List.generate(
+    5,
+    (index) => "${numbers[index]} ou ${numbers[index + 1]}",
+  );
 }
