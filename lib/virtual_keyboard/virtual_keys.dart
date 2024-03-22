@@ -24,15 +24,16 @@ class NumericVirtualKey extends VirtualKey<int> {
       );
 }
 
-class IndexedVirtualKey extends VirtualKey<int> {
+class IndexedVirtualKey extends VirtualKey<List<int>> {
   const IndexedVirtualKey({required super.label, required super.value});
 
-  static List<IndexedVirtualKey> indexedKeys(List<String> labels) =>
+  static List<IndexedVirtualKey> indexedKeys(
+          List<String> labels, List<List<int>> values) =>
       List.generate(
         labels.length,
         (index) => IndexedVirtualKey(
           label: labels[index],
-          value: index,
+          value: values[index],
         ),
         growable: false,
       );

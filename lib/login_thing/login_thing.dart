@@ -1,9 +1,11 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:virtual_secure_keyboard/virtual_keyboard/virtual_keyboard.dart';
 import 'package:virtual_secure_keyboard/virtual_keyboard/virtual_keys.dart';
+import 'package:http/http.dart' as http;
 
 class LoginThing extends StatefulWidget {
   const LoginThing({super.key});
@@ -16,11 +18,12 @@ class _LoginThingState extends State<LoginThing> {
   final passwordField = FocusNode();
   final controller = TextEditingController();
 
+  List<String>? get keys => realKeys?.map((e) => "${e[0]} ou ${e[1]}").toList();
+  List<List<int>>? realKeys = [];
+
+  List<List<int>> password = [];
   @override
   void initState() {
-    passwordField.addListener(() {
-      setState(() {});
-    });
     super.initState();
   }
 
@@ -41,6 +44,29 @@ class _LoginThingState extends State<LoginThing> {
                   label: Text(AppLocalizations.of(context)!.usenameLabel),
                   border: const OutlineInputBorder(),
                 ),
+                onFieldSubmitted: (value) async {
+                  final r = await http.post(
+                    Uri.parse(
+                        "http://localhost:8080/auth/startSession?username=$value"),
+                  );
+
+                  if (r.statusCode == 200) {
+                    realKeys = (jsonDecode(r.body)["keys"] as String)
+                        .split(";")
+                        .map(
+                          (e) => e
+                              .split(",")
+                              .map(
+                                (e) => int.parse(e),
+                              )
+                              .toList(),
+                        )
+                        .toList();
+                  } else {
+                    realKeys = null;
+                  }
+                  setState(() {});
+                },
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -55,7 +81,6 @@ class _LoginThingState extends State<LoginThing> {
                   label: Text(AppLocalizations.of(context)!.passwordLabel),
                   border: const OutlineInputBorder(),
                 ),
-                onFieldSubmitted: (value) {},
               ),
               const SizedBox(height: 16),
               TextFieldTapRegion(
@@ -64,41 +89,43 @@ class _LoginThingState extends State<LoginThing> {
                 },
                 child: VirtualKeyboard(
                   enabled: passwordField.hasFocus,
-                  virtualKeys: IndexedVirtualKey.indexedKeys(_generateKeys()),
+                  virtualKeys: IndexedVirtualKey.indexedKeys(
+                    keys ?? _generateKeys(),
+                    realKeys!,
+                  ),
                   onKeyPressed: (value) {
-                    String text = controller.text;
-                    TextSelection textSelection = controller.selection;
-
-                    String newText = text.replaceRange(textSelection.start,
-                        textSelection.end, value.toString());
-                    controller.text = newText;
-                    controller.selection = textSelection.copyWith(
-                      baseOffset: textSelection.start + 1,
-                      extentOffset: textSelection.start + 1,
-                    );
+                    controller.text = controller.text + "F";
+                    password.add(value as List<int>);
                   },
                   onBackspacePressed: () {
-                    String text = controller.text;
-                    final textSelection = controller.selection;
-                    if (textSelection.baseOffset > 0) {
-                      String newText = text.replaceRange(
-                        textSelection.start - 1,
-                        textSelection.end,
-                        "",
-                      );
-
-                      controller.text = newText;
-                      controller.selection = textSelection.copyWith(
-                        baseOffset: textSelection.start - 1,
-                        extentOffset: textSelection.start - 1,
-                      );
-                    }
+                    controller.text = controller.text
+                        .substring(0, controller.text.length - 1);
+                    password = List.generate(
+                      password.length - 1,
+                      (index) => password[index],
+                    );
                   },
                 ),
               ),
               const SizedBox(height: 16),
               FilledButton(
-                onPressed: () {},
+                onPressed: () async {
+                  final r = await http.post(
+                    Uri.parse("http://localhost:8080/auth/login"),
+                    headers: {"Content-Type": "application/json"},
+                    body: jsonEncode({
+                      "username": "Martin",
+                      "password": password,
+                    }),
+                  );
+
+                  if (r.statusCode == 200) {
+                    print(jsonDecode(r.body));
+                  } else {
+                    print(jsonDecode(r.body));
+                  }
+                  setState(() {});
+                },
                 child: const Text(
                   "Entrar",
                 ),
