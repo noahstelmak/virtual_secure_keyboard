@@ -8,6 +8,7 @@ class VirtualKeyboard<T extends VirtualKey<R>, R> extends StatelessWidget {
     required this.onKeyPressed,
     required this.onBackspacePressed,
     this.columns = 3,
+    this.enabled = true,
   });
 
   final List<T> virtualKeys;
@@ -16,6 +17,8 @@ class VirtualKeyboard<T extends VirtualKey<R>, R> extends StatelessWidget {
   final void Function() onBackspacePressed;
 
   final int columns;
+
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
@@ -29,16 +32,12 @@ class VirtualKeyboard<T extends VirtualKey<R>, R> extends StatelessWidget {
       children: [
         ...virtualKeys.map<Widget>((virtualKey) {
           return TextButton(
-            onPressed: () => onKeyPressed(virtualKey.value),
+            onPressed: enabled ? () => onKeyPressed(virtualKey.value) : null,
             child: Text(virtualKey.label),
           );
         }),
-        ...List.generate(
-          (virtualKeys.length + 1) % columns,
-          (index) => const SizedBox.shrink(),
-        ),
         TextButton(
-          onPressed: onBackspacePressed,
+          onPressed: enabled ? onBackspacePressed : null,
           child: const Icon(Icons.backspace_sharp),
         ),
       ],
