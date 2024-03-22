@@ -208,7 +208,7 @@ class _LoginThingState extends State<LoginThing> {
       Uri.parse("http://localhost:8080/auth/login"),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
-        "username": "Martin",
+        "username": username,
         "password": passwordKeys,
       }),
     );
